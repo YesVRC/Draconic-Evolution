@@ -370,6 +370,7 @@ public class DEConfig {
     public static boolean configUiEnableDeleteZone;
     public static boolean configUiEnableAdvancedXOver;
     public static boolean fancyToolModels;
+    public static boolean shaderCompatibility;
     @Deprecated
 //    public static boolean toolShaders;
 //    public static boolean crystalShaders;
@@ -386,6 +387,11 @@ public class DEConfig {
                 .setComment("Set this to false to disable the fancy 3D tool models. (Requires restart)")
                 .setDefaultBoolean(true)
                 .onSync((tag, type) -> fancyToolModels = tag.getBoolean());
+
+        clientTag.getValue("shaderCompatibility")
+                .setComment("Set this to true to disable the fancy shaders. (Requires restart)")
+                .setDefaultBoolean(false)
+                .onSync((tag, type) -> shaderCompatibility = tag.getBoolean());
 //        clientTag.getValue("toolShaders")
 //                .setComment("Set this to false to disable tool shaders.")
 //                .setDefaultBoolean(true)

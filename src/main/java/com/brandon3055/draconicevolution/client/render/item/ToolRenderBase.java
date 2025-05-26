@@ -13,6 +13,8 @@ import com.brandon3055.brandonscore.api.TechLevel;
 import com.brandon3055.brandonscore.client.shader.BCShader;
 import com.brandon3055.brandonscore.client.shader.BCShaders;
 import com.brandon3055.brandonscore.client.shader.ChaosEntityShader;
+import com.brandon3055.draconicevolution.DEConfig;
+import com.brandon3055.draconicevolution.DraconicEvolution;
 import com.brandon3055.draconicevolution.client.DEShaders;
 import com.brandon3055.draconicevolution.client.shader.ToolShader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -117,21 +119,24 @@ public abstract class ToolRenderBase implements IItemRenderer {
 
     //These parts will always be rendered solid using the model texture.
     protected ToolPart basePart(CCModel model) {
-        String levelName = techLevel.name().toLowerCase(Locale.ROOT);
-        RenderType baseType = RenderType.create(MODID + ":base", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, true, false, RenderType.CompositeState.builder()
-                .setShaderState(new RenderStateShard.ShaderStateShard(DEShaders.TOOL_BASE_SHADER::getShaderInstance))
-                .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(MODID, "textures/item/equipment/" + levelName + "_" + tool + ".png"), false, false))
-                .setLightmapState(RenderStateShard.LIGHTMAP)
-                .setOverlayState(RenderStateShard.OVERLAY)
-                .createCompositeState(true));
 
-        RenderType guiType = RenderType.create(MODID + ":base_gui", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, RenderType.CompositeState.builder()
+        String levelName = techLevel.name().toLowerCase(Locale.ROOT);
+
+        ResourceLocation toolLocation = new ResourceLocation(MODID, "textures/item/equipment/" + levelName + "_" + tool + ".png");
+
+        RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
                 .setShaderState(new RenderStateShard.ShaderStateShard(DEShaders.TOOL_BASE_SHADER::getShaderInstance))
-                .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(MODID, "textures/item/equipment/" + levelName + "_" + tool + ".png"), false, false))
+                .setTextureState(new RenderStateShard.TextureStateShard(toolLocation, false, false))
                 .setLightmapState(RenderStateShard.LIGHTMAP)
                 .setOverlayState(RenderStateShard.OVERLAY)
-                .createCompositeState(false)
-        );
+                .createCompositeState(true);
+
+        RenderType baseType = RenderType.create(MODID + ":base", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, true, false, compositeState);
+
+        RenderType guiType = RenderType.create(MODID + ":base_gui", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, compositeState);
+
+        RenderType baseTypeCompat = RenderType.entitySolid(toolLocation);
+        RenderType guiTypeCompat = RenderType.entitySolid(toolLocation);
 
         return new BaseToolPart(model, baseType, guiType, DEShaders.TOOL_BASE_SHADER);
     }
@@ -252,10 +257,11 @@ public abstract class ToolRenderBase implements IItemRenderer {
 
         @Override
         public void render(ItemDisplayContext transformType, MultiBufferSource buffers, Matrix4 mat, float pulse) {
-            buffers.getBuffer(vboType.get().withCallback(() -> {
-                glUniformBaseColor(shader, techLevel, pulse);
-                shader.getModelMatUniform().glUniformMatrix4f(mat);
-            }));
+                buffers.getBuffer(vboType.get().withCallback(() -> {
+                    glUniformBaseColor(shader, techLevel, pulse);
+                    shader.getModelMatUniform().glUniformMatrix4f(mat);
+                }));
+
         }
 
     }

@@ -13,6 +13,7 @@ import com.brandon3055.brandonscore.client.render.BlockEntityRendererTransparent
 import com.brandon3055.brandonscore.client.render.RenderUtils;
 import com.brandon3055.brandonscore.lib.Vec3D;
 import com.brandon3055.brandonscore.utils.MathUtils;
+import com.brandon3055.draconicevolution.DEConfig;
 import com.brandon3055.draconicevolution.DraconicEvolution;
 import com.brandon3055.draconicevolution.blocks.reactor.tileentity.TileReactorComponent;
 import com.brandon3055.draconicevolution.blocks.reactor.tileentity.TileReactorCore;
@@ -58,6 +59,11 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
             .setWriteMaskState(RenderStateShard.COLOR_WRITE)
             .createCompositeState(false)
     );
+
+    public static RenderType REACTOR_CORE_FALLBACK = RenderType.entitySolid(new ResourceLocation(DraconicEvolution.MODID, "textures/models/crystal_no_shader_alt.png"));
+    public static RenderType REACTOR_SHIELD_FALLBACK = RenderType.entitySolid(new ResourceLocation(DraconicEvolution.MODID, "textures/models/crystal_no_shader_alt.png"));
+    public static RenderType REACTOR_BEAM_FALLBACK = RenderType.entitySolid(new ResourceLocation(DraconicEvolution.MODID, "textures/models/crystal_no_shader_alt.png"));
+
 
     public RenderTileReactorCore(BlockEntityRendererProvider.Context context) {
         if (model == null) {
@@ -125,8 +131,11 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
         }
         DEShaders.reactorTime.glUniform1f(animation);
         DEShaders.reactorIntensity.glUniform1f(intensity);
-        ccrs.bind(REACTOR_CORE_TYPE, getter);
+        int baseColour = ccrs.baseColour;
+        ccrs.baseColour = 0xFF000000;
+        ccrs.bind(DEConfig.shaderCompatibility? REACTOR_CORE_FALLBACK: REACTOR_CORE_TYPE, getter);
         model.render(ccrs, mat);
+        ccrs.baseColour = baseColour;
         RenderUtils.endBatch(getter);
 
         mat.scale(1.05);

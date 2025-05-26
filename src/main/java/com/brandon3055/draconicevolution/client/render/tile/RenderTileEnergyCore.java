@@ -17,6 +17,7 @@ import com.brandon3055.brandonscore.client.shader.BCShaders;
 import com.brandon3055.brandonscore.lib.Vec3I;
 import com.brandon3055.brandonscore.lib.datamanager.ManagedPos;
 import com.brandon3055.brandonscore.multiblock.MultiBlockDefinition;
+import com.brandon3055.draconicevolution.DEConfig;
 import com.brandon3055.draconicevolution.DraconicEvolution;
 import com.brandon3055.draconicevolution.blocks.tileentity.TileEnergyCore;
 import com.brandon3055.draconicevolution.client.AtlasTextureHelper;
@@ -66,6 +67,10 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
             .createCompositeState(false)
     );
 
+    private static final RenderType innerStabFallback = RenderType.entitySolid(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_sphere.png"));
+    private static final RenderType outerStabFallback = RenderType.entityTranslucent(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_sphere.png"));
+
+
     private static final RenderType beamType = RenderType.create("inner_beam", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
             .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_beam.png"), false, false))
             .setShaderState(new RenderStateShard.ShaderStateShard(GameRenderer::getPositionTexShader))
@@ -80,6 +85,8 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
             .setWriteMaskState(RenderStateShard.COLOR_WRITE)
             .createCompositeState(false)
     );
+
+    private static final RenderType outerBeamFallback = RenderType.entityTranslucent(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_beam.png"));
 
     private static RenderType coreShaderType = RenderType.create("test_shader", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
             .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/energy_core_overlay.png"), false, false))
@@ -253,14 +260,14 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
             ccrs.baseColour = 0x00FFFFFF;
             ccrs.brightness = 240;
             innerMat.rotate((ClientEventHandler.elapsedTicks + partialTick) * MathHelper.torad, new Vector3(0, -1, 0));
-            ccrs.bind(innerStabType, getter);
+            ccrs.bind(DEConfig.shaderCompatibility? innerStabFallback : innerStabType, getter);
             modelStabilizerSphere.render(ccrs, innerMat);
 
             mat.scale(1.1F, 1.1F, 1.1F);
             ccrs.baseColour = 0x00FFFF7F;
             ccrs.brightness = 240;
             mat.rotate((ClientEventHandler.elapsedTicks + partialTick) * 0.5F * MathHelper.torad, new Vector3(0, 1, 0));
-            ccrs.bind(outerStabType, getter);
+            ccrs.bind(DEConfig.shaderCompatibility? outerStabFallback: outerStabType, getter);
             modelStabilizerSphere.render(ccrs, mat);
         }
     }
@@ -350,6 +357,7 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
         //endregion
 
         Matrix4 outerMat = matrix4.copy();
+        //DEConfig.shaderCompatibility? outerBeamFallback : outerBeamType
         builder = new TransformingVertexConsumer(getter.getBuffer(outerBeamType), outerMat);
         outerMat.rotate(180 * MathHelper.torad, new Vector3(0, 0, 1));
 

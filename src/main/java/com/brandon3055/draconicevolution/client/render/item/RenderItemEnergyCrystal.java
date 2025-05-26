@@ -15,6 +15,7 @@ import codechicken.lib.vec.Matrix4;
 import codechicken.lib.vec.Rotation;
 import com.brandon3055.brandonscore.api.TechLevel;
 import com.brandon3055.brandonscore.api.TimeKeeper;
+import com.brandon3055.draconicevolution.DEConfig;
 import com.brandon3055.draconicevolution.DraconicEvolution;
 import com.brandon3055.draconicevolution.blocks.energynet.EnergyCrystal.CrystalType;
 import com.brandon3055.draconicevolution.client.DEShaders;
@@ -87,17 +88,20 @@ public class RenderItemEnergyCrystal implements IItemRenderer {
         DEShaders.energyCrystalMipmap.glUniform1f(0);
         DEShaders.energyCrystalColour.glUniform3f(COLOURS[tier][0], COLOURS[tier][1], COLOURS[tier][2]);
 
+        RenderType crystalRenderType = DEConfig.shaderCompatibility? RenderTileEnergyCrystal.fallBackType : RenderTileEnergyCrystal.crystalType;
+
         if (type == CrystalType.CRYSTAL_IO) {
             ccrs.bind(crystalBaseType, getter);
             crystalBase.render(ccrs, mat);
+
             mat.apply(new Rotation(TimeKeeper.getClientTick() / 400F, 0, 1, 0));
             ccrs.baseColour = Colour.packRGBA(r[tier], g[tier], b[tier], 1F);
-            ccrs.bind(RenderTileEnergyCrystal.crystalType, getter);
+            ccrs.bind(crystalRenderType, getter);
             crystalHalf.render(ccrs, mat);
         } else {
             ccrs.baseColour = Colour.packRGBA(r[tier], g[tier], b[tier], 1F);
             mat.apply(new Rotation(TimeKeeper.getClientTick() / 400F, 0, 1, 0));
-            ccrs.bind(RenderTileEnergyCrystal.crystalType, getter);
+            ccrs.bind(crystalRenderType, getter);
             crystalFull.render(ccrs, mat);
         }
     }
