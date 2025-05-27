@@ -124,18 +124,26 @@ public abstract class ToolRenderBase implements IItemRenderer {
 
         ResourceLocation toolLocation = new ResourceLocation(MODID, "textures/item/equipment/" + levelName + "_" + tool + ".png");
 
-        RenderType.CompositeState compositeState = RenderType.CompositeState.builder()
+        RenderType.CompositeState baseCompositeType = RenderType.CompositeState.builder()
                 .setShaderState(new RenderStateShard.ShaderStateShard(DEShaders.TOOL_BASE_SHADER::getShaderInstance))
                 .setTextureState(new RenderStateShard.TextureStateShard(toolLocation, false, false))
                 .setLightmapState(RenderStateShard.LIGHTMAP)
                 .setOverlayState(RenderStateShard.OVERLAY)
                 .createCompositeState(true);
 
-        RenderType baseType = RenderType.create(MODID + ":base", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, true, false, compositeState);
+        RenderType.CompositeState baseCompositeTypeFallback = RenderType.CompositeState.builder()
+                .setShaderState(RenderStateShard.POSITION_COLOR_TEX_LIGHTMAP_SHADER)
+                .setTextureState(new RenderStateShard.TextureStateShard(toolLocation, false, false))
+                .setLightmapState(RenderStateShard.LIGHTMAP)
+                .setOverlayState(RenderStateShard.OVERLAY)
+                .createCompositeState(true);
 
-        RenderType guiType = RenderType.create(MODID + ":base_gui", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, compositeState);
 
-        RenderType baseTypeCompat = RenderType.entitySolid(toolLocation);
+        RenderType baseType = RenderType.create(MODID + ":base", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, true, false, DEConfig.shaderCompatibility? baseCompositeTypeFallback : baseCompositeType);
+
+        RenderType guiType = RenderType.create(MODID + ":base_gui", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, baseCompositeType);
+
+
         RenderType guiTypeCompat = RenderType.entitySolid(toolLocation);
 
         return new BaseToolPart(model, baseType, guiType, DEShaders.TOOL_BASE_SHADER);
@@ -146,7 +154,7 @@ public abstract class ToolRenderBase implements IItemRenderer {
         if (techLevel != TechLevel.CHAOTIC) return basePart(model);
 
         RenderType chaoticType = RenderType.create(MODID + ":tool_chaos", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, RenderType.CompositeState.builder()
-                .setShaderState(new RenderStateShard.ShaderStateShard(BCShaders.CHAOS_ENTITY_SHADER::getShaderInstance))
+                .setShaderState(DEConfig.shaderCompatibility? RenderStateShard.POSITION_COLOR_TEX_LIGHTMAP_SHADER : new RenderStateShard.ShaderStateShard(BCShaders.CHAOS_ENTITY_SHADER::getShaderInstance))
                 .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(MODID, "textures/item/equipment/chaos_shader.png"), true, false))
                 .setLightmapState(RenderStateShard.LIGHTMAP)
                 .setOverlayState(RenderStateShard.OVERLAY)
@@ -157,14 +165,22 @@ public abstract class ToolRenderBase implements IItemRenderer {
 
     protected ToolPart gemPart(CCModel model) {
         String levelName = techLevel.name().toLowerCase(Locale.ROOT);
-        RenderType gemType = RenderType.create(MODID + ":tool_gem", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, RenderType.CompositeState.builder()
+
+        RenderType.CompositeState gemTypeComposite = RenderType.CompositeState.builder()
                 .setShaderState(new RenderStateShard.ShaderStateShard(DEShaders.TOOL_GEM_SHADER::getShaderInstance))
                 .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(MODID, "textures/item/equipment/shader_fallback_" + levelName + ".png"), false, false))
                 .setLightmapState(RenderStateShard.LIGHTMAP)
                 .setOverlayState(RenderStateShard.OVERLAY)
-                .createCompositeState(false)
-        );
+                .createCompositeState(false);
 
+        RenderType.CompositeState gemTypeCompositeFallback = RenderType.CompositeState.builder()
+                .setShaderState(RenderStateShard.POSITION_COLOR_TEX_LIGHTMAP_SHADER)
+                .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(MODID, "textures/item/equipment/shader_fallback_" + levelName + ".png"), false, false))
+                .setLightmapState(RenderStateShard.LIGHTMAP)
+                .setOverlayState(RenderStateShard.OVERLAY)
+                .createCompositeState(false);
+
+        RenderType gemType = RenderType.create(MODID + ":tool_gem", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, DEConfig.shaderCompatibility? gemTypeCompositeFallback : gemTypeComposite);
         return new SimpleToolPart(model, gemType, DEShaders.TOOL_GEM_SHADER);
     }
 
@@ -172,7 +188,7 @@ public abstract class ToolRenderBase implements IItemRenderer {
     protected ToolPart tracePart(CCModel model) {
         String levelName = techLevel.name().toLowerCase(Locale.ROOT);
         RenderType gemType = RenderType.create(MODID + ":tool_trace", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, RenderType.CompositeState.builder()
-                .setShaderState(new RenderStateShard.ShaderStateShard(DEShaders.TOOL_TRACE_SHADER::getShaderInstance))
+                .setShaderState(DEConfig.shaderCompatibility? RenderStateShard.POSITION_COLOR_TEX_LIGHTMAP_SHADER : new RenderStateShard.ShaderStateShard(DEShaders.TOOL_TRACE_SHADER::getShaderInstance))
                 .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(MODID, "textures/item/equipment/shader_fallback_" + levelName + ".png"), false, false))
                 .setLightmapState(RenderStateShard.LIGHTMAP)
                 .setOverlayState(RenderStateShard.OVERLAY)
@@ -184,8 +200,9 @@ public abstract class ToolRenderBase implements IItemRenderer {
 
     protected ToolPart bladePart(CCModel model) {
         String levelName = techLevel.name().toLowerCase(Locale.ROOT);
-        RenderType gemType = RenderType.create(MODID + ":tool_blade", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES, 256, RenderType.CompositeState.builder()
-                .setShaderState(new RenderStateShard.ShaderStateShard(DEShaders.TOOL_BLADE_SHADER::getShaderInstance))
+        //DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS
+        RenderType gemType = RenderType.create(MODID + ":tool_blade", DEConfig.shaderCompatibility? DefaultVertexFormat.POSITION_TEX : DefaultVertexFormat.NEW_ENTITY, DEConfig.shaderCompatibility? VertexFormat.Mode.QUADS : VertexFormat.Mode.TRIANGLES, 256, RenderType.CompositeState.builder()
+                .setShaderState(DEConfig.shaderCompatibility? RenderStateShard.POSITION_COLOR_TEX_LIGHTMAP_SHADER : new RenderStateShard.ShaderStateShard(DEShaders.TOOL_BLADE_SHADER::getShaderInstance))
                 .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(MODID, "textures/item/equipment/shader_fallback_" + levelName + ".png"), false, false))
                 .setLightmapState(RenderStateShard.LIGHTMAP)
                 .setOverlayState(RenderStateShard.OVERLAY)

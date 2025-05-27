@@ -54,6 +54,13 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
             .createCompositeState(false)
     );
 
+    public static final RenderType outerCoreFallback = RenderType.create("outer_core", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+            .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/energy_core_overlay.png"), false, false))
+            .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_CUTOUT_SHADER)
+            .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+            .createCompositeState(false)
+    );
+
     private static final RenderType innerStabType = RenderType.create("inner_stab", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
             .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_sphere.png"), false, false))
             .setShaderState(new RenderStateShard.ShaderStateShard(() -> BCShaders.posColourTexAlpha0))
@@ -86,7 +93,13 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
             .createCompositeState(false)
     );
 
-    private static final RenderType outerBeamFallback = RenderType.entityTranslucent(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_beam.png"));
+    private static final RenderType outerBeamFallback = RenderType.create("outer_beam", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.TRIANGLE_STRIP, 256, false, false, RenderType.CompositeState.builder()
+            .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_beam.png"), false, false))
+            .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
+            .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+            .setWriteMaskState(RenderStateShard.COLOR_WRITE)
+            .createCompositeState(false)
+    );
 
     private static RenderType coreShaderType = RenderType.create("test_shader", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
             .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/energy_core_overlay.png"), false, false))
@@ -219,7 +232,7 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
         } else {
             ccrs.baseColour = Colour.packRGBA(0.2F, 1F, 1F, 1F);
         }
-        ccrs.bind(outerCoreType, getter);
+        ccrs.bind(DEConfig.shaderCompatibility? outerCoreFallback : outerCoreType, getter);
 //        ccrs.bind(RenderType.translucentMovingBlock(), getter);
         Matrix4 overlayMatRef = mat.copy();
         overlayMatRef.translate(0.5, 0.5, 0.5);
@@ -358,7 +371,7 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
 
         Matrix4 outerMat = matrix4.copy();
         //DEConfig.shaderCompatibility? outerBeamFallback : outerBeamType
-        builder = new TransformingVertexConsumer(getter.getBuffer(outerBeamType), outerMat);
+        builder = new TransformingVertexConsumer(getter.getBuffer(DEConfig.shaderCompatibility? outerBeamFallback : outerBeamType), outerMat);
         outerMat.rotate(180 * MathHelper.torad, new Vector3(0, 0, 1));
 
         //region Render Outer Beam
