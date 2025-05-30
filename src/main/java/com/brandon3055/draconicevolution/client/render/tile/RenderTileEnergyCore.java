@@ -22,6 +22,7 @@ import com.brandon3055.draconicevolution.blocks.tileentity.TileEnergyCore;
 import com.brandon3055.draconicevolution.client.AtlasTextureHelper;
 import com.brandon3055.draconicevolution.client.DEShaders;
 import com.brandon3055.draconicevolution.client.handler.ClientEventHandler;
+import com.brandon3055.draconicevolution.client.shader.EnergyCoreShader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -35,6 +36,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import org.openjdk.nashorn.internal.runtime.logging.DebugLogger;
 
 import java.util.*;
 
@@ -81,12 +83,6 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
             .createCompositeState(false)
     );
 
-    private final RenderType.CompositeState outerCoreCompositeState = RenderType.CompositeState.builder()
-            .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/energy_core_overlay.png"), false, false))
-            .setShaderState(new RenderStateShard.ShaderStateShard(() -> DEShaders.energyCoreShader))
-            .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-            .setCullState(RenderStateShard.NO_CULL)
-            .createCompositeState(false);
 
     private final CCModel modelStabilizerSphere;
     private final CCModel modelEnergyCore;
@@ -103,6 +99,7 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
         map = new OBJParser(new ResourceLocation(DraconicEvolution.MODID, "models/block/energy_core/energy_core_model.obj")).quads().ignoreMtl().parse();
         modelEnergyCore = CCModel.combine(map.values());
         modelEnergyCore.computeNormals();
+
 
 //        coreType = new VBORenderType(innerCoreType, (format, builder) -> {
 //            CCRenderState ccrs = CCRenderState.instance();
@@ -184,10 +181,16 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
             effect = unpack(t8 ? TileEnergyCore.DEFAULT_EFFECT_COLOUR_T8 : TileEnergyCore.DEFAULT_EFFECT_COLOUR);
         }
 
+        RenderType coreShaderType = RenderType.create("fancy_outer_core_" + te.linkUUID.get(), DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+                .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/energy_core_overlay.png"), false, false))
+                .setShaderState(new RenderStateShard.ShaderStateShard(() -> DEShaders.energyCoreShader))
+                .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                .setCullState(RenderStateShard.NO_CULL)
+                .createCompositeState(true));
+
         DEShaders.energyCoreShader.setFrameColour(frame);
         DEShaders.energyCoreShader.setRotTriColour(triangle);
         DEShaders.energyCoreShader.setEffectColour(effect);
-        RenderType coreShaderType = RenderType.create("fancy_outer_core_" + te.getBlockPos().getX() + "-" + te.getBlockPos().getY() + "-"+ te.getBlockPos().getZ(), DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, outerCoreCompositeState);
 
 
 //        DEShaders.energyCoreFrameColour.glUniform3f(0.1F, 0.1F, 0.1F);
