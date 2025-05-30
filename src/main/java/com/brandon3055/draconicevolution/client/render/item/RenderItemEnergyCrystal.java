@@ -15,7 +15,6 @@ import codechicken.lib.vec.Matrix4;
 import codechicken.lib.vec.Rotation;
 import com.brandon3055.brandonscore.api.TechLevel;
 import com.brandon3055.brandonscore.api.TimeKeeper;
-import com.brandon3055.draconicevolution.DEConfig;
 import com.brandon3055.draconicevolution.DraconicEvolution;
 import com.brandon3055.draconicevolution.blocks.energynet.EnergyCrystal.CrystalType;
 import com.brandon3055.draconicevolution.client.DEShaders;
@@ -85,10 +84,20 @@ public class RenderItemEnergyCrystal implements IItemRenderer {
         ccrs.brightness = packedLight;
         ccrs.overlay = packedOverlay;
         mat.translate(0.5, type == CrystalType.CRYSTAL_IO ? 0 : 0.5, 0.5);
-        DEShaders.energyCrystalMipmap.glUniform1f(0);
-        DEShaders.energyCrystalColour.glUniform3f(COLOURS[tier][0], COLOURS[tier][1], COLOURS[tier][2]);
-
-        RenderType crystalRenderType = DEConfig.shaderCompatibility? RenderTileEnergyCrystal.fallBackType : RenderTileEnergyCrystal.crystalType;
+        switch (tier){
+            case 0:
+                DEShaders.basicEnergyCrystalShader.setMipmap(0F);
+                DEShaders.basicEnergyCrystalShader.setColour(COLOURS[tier]);
+                break;
+            case 1:
+                DEShaders.wyvernEnergyCrystalShader.setMipmap(0F);
+                DEShaders.wyvernEnergyCrystalShader.setColour(COLOURS[tier]);
+                break;
+            case 2:
+                DEShaders.draconicEnergyCrystalShader.setMipmap(0F);
+                DEShaders.draconicEnergyCrystalShader.setColour(COLOURS[tier]);
+                break;
+        }
 
         if (type == CrystalType.CRYSTAL_IO) {
             ccrs.bind(crystalBaseType, getter);
@@ -96,12 +105,12 @@ public class RenderItemEnergyCrystal implements IItemRenderer {
 
             mat.apply(new Rotation(TimeKeeper.getClientTick() / 400F, 0, 1, 0));
             ccrs.baseColour = Colour.packRGBA(r[tier], g[tier], b[tier], 1F);
-            ccrs.bind(crystalRenderType, getter);
+            ccrs.bind(RenderTileEnergyCrystal.crystalTypes[tier], getter);
             crystalHalf.render(ccrs, mat);
         } else {
             ccrs.baseColour = Colour.packRGBA(r[tier], g[tier], b[tier], 1F);
             mat.apply(new Rotation(TimeKeeper.getClientTick() / 400F, 0, 1, 0));
-            ccrs.bind(crystalRenderType, getter);
+            ccrs.bind(RenderTileEnergyCrystal.crystalTypes[tier], getter);
             crystalFull.render(ccrs, mat);
         }
     }

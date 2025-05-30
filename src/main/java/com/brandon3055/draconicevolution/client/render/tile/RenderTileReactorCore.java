@@ -1,6 +1,5 @@
 package com.brandon3055.draconicevolution.client.render.tile;
 
-import codechicken.lib.colour.ColourRGBA;
 import codechicken.lib.gui.modular.lib.GuiRender;
 import codechicken.lib.math.MathHelper;
 import codechicken.lib.render.CCModel;
@@ -14,7 +13,6 @@ import com.brandon3055.brandonscore.client.render.BlockEntityRendererTransparent
 import com.brandon3055.brandonscore.client.render.RenderUtils;
 import com.brandon3055.brandonscore.lib.Vec3D;
 import com.brandon3055.brandonscore.utils.MathUtils;
-import com.brandon3055.draconicevolution.DEConfig;
 import com.brandon3055.draconicevolution.DraconicEvolution;
 import com.brandon3055.draconicevolution.blocks.reactor.tileentity.TileReactorComponent;
 import com.brandon3055.draconicevolution.blocks.reactor.tileentity.TileReactorCore;
@@ -43,38 +41,19 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
     private static CCModel model = null;
 
     public static RenderType REACTOR_CORE_TYPE = RenderType.create("reactor_type", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, RenderType.CompositeState.builder()
-                    .setShaderState(new RenderStateShard.ShaderStateShard(() -> DEShaders.reactorShader))
-                    .createCompositeState(false)
+            .setShaderState(new RenderStateShard.ShaderStateShard(() -> DEShaders.reactorShader))
+            .createCompositeState(false)
     );
 
     public static RenderType REACTOR_SHIELD_TYPE = RenderType.create("shield_type", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, RenderType.CompositeState.builder()
-                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-                    .setShaderState(new RenderStateShard.ShaderStateShard(() -> DEShaders.reactorShieldShader))
-                    .createCompositeState(false)
+            .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+            .setShaderState(new RenderStateShard.ShaderStateShard(() -> DEShaders.reactorShieldShader))
+            .createCompositeState(false)
     );
-
 
     public static RenderType REACTOR_BEAM_TYPE = RenderType.create(MODID + "beam_typess", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.TRIANGLE_STRIP, 256, false, true, RenderType.CompositeState.builder()
             .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
             .setShaderState(new RenderStateShard.ShaderStateShard(() -> DEShaders.reactorBeamShader))
-            .setCullState(RenderStateShard.NO_CULL)
-            .setWriteMaskState(RenderStateShard.COLOR_WRITE)
-            .createCompositeState(false)
-    );
-
-
-    public static RenderType REACTOR_CORE_FALLBACK = RenderType.entitySolid(new ResourceLocation(DraconicEvolution.MODID, "textures/models/crystal_no_shader_alt.png"));
-    public static RenderType REACTOR_SHIELD_TYPE_FALLBACK = RenderType.create("shield_type_fallback", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, RenderType.CompositeState.builder()
-            .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
-            .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/models/crystal_no_shader_alt.png"), false, false))
-            .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-            .createCompositeState(false)
-    );
-
-    public static RenderType REACTOR_BEAM_TYPE_FALLBACK = RenderType.create(MODID + "beam_typess_fallback", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.TRIANGLE_STRIP, 256, false, true, RenderType.CompositeState.builder()
-            .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-            .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
-            .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/models/crystal_no_shader_alt.png"), false, false))
             .setCullState(RenderStateShard.NO_CULL)
             .setWriteMaskState(RenderStateShard.COLOR_WRITE)
             .createCompositeState(false)
@@ -146,22 +125,17 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
         }
         DEShaders.reactorTime.glUniform1f(animation);
         DEShaders.reactorIntensity.glUniform1f(intensity);
-        int baseColour = ccrs.baseColour;
-        ccrs.baseColour = 0xFF0000FF;
-        ccrs.bind(DEConfig.shaderCompatibility? REACTOR_CORE_FALLBACK: REACTOR_CORE_TYPE, getter);
+        ccrs.bind(REACTOR_CORE_TYPE, getter);
         model.render(ccrs, mat);
-        ccrs.baseColour = baseColour;
         RenderUtils.endBatch(getter);
 
         mat.scale(1.05);
 
         DEShaders.reactorShieldTime.glUniform1f(animation);
         DEShaders.reactorShieldIntensity.glUniform1f((0.7F * shieldPower) - (float) (1 - animState));
-        ccrs.bind(DEConfig.shaderCompatibility? REACTOR_SHIELD_TYPE_FALLBACK : REACTOR_SHIELD_TYPE, getter);
-        ccrs.baseColour = (int) (shieldPower * 0x0099FFFF);
+        ccrs.bind(REACTOR_SHIELD_TYPE, getter);
         model.render(ccrs, mat);
         RenderUtils.endBatch(getter);
-        ccrs.reset();
     }
 
     public static void renderGUI(GuiRender render, TileReactorCore te) {
@@ -187,7 +161,8 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
         Matrix4 mat = new Matrix4(poseStack);
         CCRenderState ccrs = CCRenderState.instance();
         ccrs.reset();
-        //ccrs.overlay = packedOverlay;
+        ccrs.brightness = packedLight;
+        ccrs.overlay = packedOverlay;
 
         double diameter = te.getCoreDiameter();
         float t = (float) (te.temperature.get() / TileReactorCore.MAX_TEMPERATURE);
@@ -195,7 +170,6 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
         float shieldPower = (float) (te.maxShieldCharge.get() > 0 ? te.shieldCharge.get() / te.maxShieldCharge.get() : 0);
         float animation = (te.coreAnimation + (partialTicks * (float) te.shaderAnimationState.get())) / 20F;
 
-        ccrs.brightness = (int) (intensity * 240);
         mat.translate(0.5, 0.5, 0.5);
         mat.scale(diameter);
         mat.rotate((ClientEventHandler.elapsedTicks + partialTicks) / 400F, Vector3.Y_POS);
@@ -211,13 +185,9 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
             Direction facing = component.facing.get();
             float dist = (float) Math.sqrt(component.getBlockPos().distSqr(te.getBlockPos()));
 
-
             Vec3D pos1 = Vec3D.getCenter(component.getBlockPos()).subtract(new Vec3D(te.getBlockPos())).offset(facing, -0.35D);
 
             if (component instanceof TileReactorInjector) {
-                ccrs.baseColour = 0xFF0000FF;
-                ccrs.setColour(new ColourRGBA(0xFF0000FF));
-
                 Vec3D pos2 = pos1.copy().offset(facing, 0.6D);
 
                 DEShaders.reactorBeamType.glUniformI(2);
@@ -228,12 +198,7 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
 
                 DEShaders.reactorBeamFade.glUniform1f(0F);
                 renderShaderBeam(ccrs, facing, fxState, buffers, poseStack, pos2, 0.1F, coreSize / 1.5, dist - (coreSize * 1.3F), false, false);
-                ccrs.baseColour = -1;
             } else {
-
-                ccrs.baseColour = 0x00AAFFFF;
-                ccrs.setColour(new ColourRGBA(0x00AAFFFF));
-
                 Vec3D pos2 = pos1.copy().offset(facing, 0.8D);
 
                 //Inner Inner
@@ -255,7 +220,6 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
 
                 DEShaders.reactorBeamFade.glUniform1f(0F);
                 renderShaderBeam(ccrs, facing, fxState, buffers, poseStack, pos2, 0.355F, coreSize, dist - coreSize, false, true);
-                ccrs.baseColour = -1;
             }
 
             ccrs.reset();
@@ -263,10 +227,10 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
     }
 
     public void renderShaderBeam(CCRenderState ccrs, Direction facing, float fxState, MultiBufferSource buffers, PoseStack poseStack, Vec3D pos, double widthStart, double widthEnd, float length, boolean fadeReverse, boolean highRes) {
-        VertexConsumer buffer = new TransformingVertexConsumer(buffers.getBuffer(DEConfig.shaderCompatibility? REACTOR_BEAM_TYPE_FALLBACK : REACTOR_BEAM_TYPE), poseStack);
+        VertexConsumer buffer = new TransformingVertexConsumer(buffers.getBuffer(REACTOR_BEAM_TYPE), poseStack);
         ccrs.bind(buffer, DefaultVertexFormat.POSITION_COLOR_TEX);
         ccrs.startDrawing(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR_TEX);
-        
+
         float sides = highRes ? 599 : 99;
         for (int i = 0; i < sides + 1; i++) {
             double angle = (i / sides) * (Math.PI * 2);// + beamRotation;

@@ -17,7 +17,6 @@ import com.brandon3055.brandonscore.client.shader.BCShaders;
 import com.brandon3055.brandonscore.lib.Vec3I;
 import com.brandon3055.brandonscore.lib.datamanager.ManagedPos;
 import com.brandon3055.brandonscore.multiblock.MultiBlockDefinition;
-import com.brandon3055.draconicevolution.DEConfig;
 import com.brandon3055.draconicevolution.DraconicEvolution;
 import com.brandon3055.draconicevolution.blocks.tileentity.TileEnergyCore;
 import com.brandon3055.draconicevolution.client.AtlasTextureHelper;
@@ -54,13 +53,6 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
             .createCompositeState(false)
     );
 
-    public static final RenderType outerCoreFallback = RenderType.create("outer_core", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
-            .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/energy_core_overlay.png"), false, false))
-            .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_CUTOUT_SHADER)
-            .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-            .createCompositeState(false)
-    );
-
     private static final RenderType innerStabType = RenderType.create("inner_stab", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
             .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_sphere.png"), false, false))
             .setShaderState(new RenderStateShard.ShaderStateShard(() -> BCShaders.posColourTexAlpha0))
@@ -74,40 +66,27 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
             .createCompositeState(false)
     );
 
-    private static final RenderType innerStabFallback = RenderType.entitySolid(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_sphere.png"));
-    private static final RenderType outerStabFallback = RenderType.entityTranslucent(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_sphere.png"));
-
-
     private static final RenderType beamType = RenderType.create("inner_beam", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
             .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_beam.png"), false, false))
-            .setShaderState(new RenderStateShard.ShaderStateShard(GameRenderer::getPositionTexShader))
+            .setShaderState(RenderStateShard.POSITION_TEX_SHADER)
             .setTransparencyState(RenderStateShard.NO_TRANSPARENCY)
             .createCompositeState(false)
     );
 
     private static final RenderType outerBeamType = RenderType.create("outer_beam", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.TRIANGLE_STRIP, 256, false, false, RenderType.CompositeState.builder()
             .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_beam.png"), false, false))
-            .setShaderState(new RenderStateShard.ShaderStateShard(GameRenderer::getPositionColorTexShader))
+            .setShaderState(RenderStateShard.RENDERTYPE_BEACON_BEAM_SHADER)
             .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
             .setWriteMaskState(RenderStateShard.COLOR_WRITE)
             .createCompositeState(false)
     );
 
-    private static final RenderType outerBeamFallback = RenderType.create("outer_beam", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.TRIANGLE_STRIP, 256, false, false, RenderType.CompositeState.builder()
-            .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/stabilizer_beam.png"), false, false))
-            .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
-            .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-            .setWriteMaskState(RenderStateShard.COLOR_WRITE)
-            .createCompositeState(false)
-    );
-
-    private static RenderType coreShaderType = RenderType.create("test_shader", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, RenderType.CompositeState.builder()
+    private final RenderType.CompositeState outerCoreCompositeState = RenderType.CompositeState.builder()
             .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(DraconicEvolution.MODID, "textures/block/energy_core/energy_core_overlay.png"), false, false))
             .setShaderState(new RenderStateShard.ShaderStateShard(() -> DEShaders.energyCoreShader))
             .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
             .setCullState(RenderStateShard.NO_CULL)
-            .createCompositeState(false)
-    );
+            .createCompositeState(false);
 
     private final CCModel modelStabilizerSphere;
     private final CCModel modelEnergyCore;
@@ -188,7 +167,7 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
     }
 
     public void renderFancyOuterCore(TileEnergyCore te, CCRenderState ccrs, Matrix4 mat, MultiBufferSource getter, float partialTicks, float rotation, double scale) {
-        DEShaders.energyCoreActivation.glUniform1f(1);
+        DEShaders.energyCoreShader.setActivation(1);
         boolean t8 = te.tier.get() == 8;
 
         float[] frame;
@@ -205,9 +184,10 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
             effect = unpack(t8 ? TileEnergyCore.DEFAULT_EFFECT_COLOUR_T8 : TileEnergyCore.DEFAULT_EFFECT_COLOUR);
         }
 
-        DEShaders.energyCoreFrameColour.glUniform3f(frame[0], frame[1], frame[2]);
-        DEShaders.energyCoreRotTriColour.glUniform3f(triangle[0], triangle[1], triangle[2]);
-        DEShaders.energyCoreEffectColour.glUniform3f(effect[0], effect[1], effect[2]);
+        DEShaders.energyCoreShader.setFrameColour(frame);
+        DEShaders.energyCoreShader.setRotTriColour(triangle);
+        DEShaders.energyCoreShader.setEffectColour(effect);
+        RenderType coreShaderType = RenderType.create("fancy_outer_core_" + te.getBlockPos().getX() + "-" + te.getBlockPos().getY() + "-"+ te.getBlockPos().getZ(), DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, false, true, outerCoreCompositeState);
 
 
 //        DEShaders.energyCoreFrameColour.glUniform3f(0.1F, 0.1F, 0.1F);
@@ -232,7 +212,7 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
         } else {
             ccrs.baseColour = Colour.packRGBA(0.2F, 1F, 1F, 1F);
         }
-        ccrs.bind(DEConfig.shaderCompatibility? outerCoreFallback : outerCoreType, getter);
+        ccrs.bind(outerCoreType, getter);
 //        ccrs.bind(RenderType.translucentMovingBlock(), getter);
         Matrix4 overlayMatRef = mat.copy();
         overlayMatRef.translate(0.5, 0.5, 0.5);
@@ -273,14 +253,14 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
             ccrs.baseColour = 0x00FFFFFF;
             ccrs.brightness = 240;
             innerMat.rotate((ClientEventHandler.elapsedTicks + partialTick) * MathHelper.torad, new Vector3(0, -1, 0));
-            ccrs.bind(DEConfig.shaderCompatibility? innerStabFallback : innerStabType, getter);
+            ccrs.bind(innerStabType, getter);
             modelStabilizerSphere.render(ccrs, innerMat);
 
             mat.scale(1.1F, 1.1F, 1.1F);
             ccrs.baseColour = 0x00FFFF7F;
             ccrs.brightness = 240;
             mat.rotate((ClientEventHandler.elapsedTicks + partialTick) * 0.5F * MathHelper.torad, new Vector3(0, 1, 0));
-            ccrs.bind(DEConfig.shaderCompatibility? outerStabFallback: outerStabType, getter);
+            ccrs.bind(outerStabType, getter);
             modelStabilizerSphere.render(ccrs, mat);
         }
     }
@@ -370,8 +350,7 @@ public class RenderTileEnergyCore implements BlockEntityRenderer<TileEnergyCore>
         //endregion
 
         Matrix4 outerMat = matrix4.copy();
-        //DEConfig.shaderCompatibility? outerBeamFallback : outerBeamType
-        builder = new TransformingVertexConsumer(getter.getBuffer(DEConfig.shaderCompatibility? outerBeamFallback : outerBeamType), outerMat);
+        builder = new TransformingVertexConsumer(getter.getBuffer(outerBeamType), outerMat);
         outerMat.rotate(180 * MathHelper.torad, new Vector3(0, 0, 1));
 
         //region Render Outer Beam

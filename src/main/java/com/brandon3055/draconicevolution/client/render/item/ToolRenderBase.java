@@ -201,8 +201,8 @@ public abstract class ToolRenderBase implements IItemRenderer {
     protected ToolPart bladePart(CCModel model) {
         String levelName = techLevel.name().toLowerCase(Locale.ROOT);
         //DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS
-        RenderType gemType = RenderType.create(MODID + ":tool_blade", DEConfig.shaderCompatibility? DefaultVertexFormat.POSITION_TEX : DefaultVertexFormat.NEW_ENTITY, DEConfig.shaderCompatibility? VertexFormat.Mode.QUADS : VertexFormat.Mode.TRIANGLES, 256, RenderType.CompositeState.builder()
-                .setShaderState(DEConfig.shaderCompatibility? RenderStateShard.POSITION_COLOR_TEX_LIGHTMAP_SHADER : new RenderStateShard.ShaderStateShard(DEShaders.TOOL_BLADE_SHADER::getShaderInstance))
+        RenderType gemType = RenderType.create(MODID + ":tool_blade", DefaultVertexFormat.POSITION_TEX, DEConfig.shaderCompatibility? VertexFormat.Mode.QUADS : VertexFormat.Mode.TRIANGLES, 256, RenderType.CompositeState.builder()
+                .setShaderState(new RenderStateShard.ShaderStateShard(DEShaders.TOOL_BLADE_SHADER::getShaderInstance))
                 .setTextureState(new RenderStateShard.TextureStateShard(new ResourceLocation(MODID, "textures/item/equipment/shader_fallback_" + levelName + ".png"), false, false))
                 .setLightmapState(RenderStateShard.LIGHTMAP)
                 .setOverlayState(RenderStateShard.OVERLAY)
