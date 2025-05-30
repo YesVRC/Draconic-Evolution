@@ -16,6 +16,7 @@ import com.brandon3055.draconicevolution.blocks.energynet.tileentity.TileCrystal
 import com.brandon3055.draconicevolution.blocks.energynet.tileentity.TileCrystalDirectIO;
 import com.brandon3055.draconicevolution.client.DEShaders;
 import com.brandon3055.draconicevolution.client.handler.ClientEventHandler;
+import com.brandon3055.draconicevolution.client.shader.EnergyCrystalShaderInstance;
 import com.mojang.blaze3d.shaders.Program;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -96,20 +97,9 @@ public class RenderTileEnergyCrystal implements BlockEntityRenderer<TileCrystalB
 //        float yrot = (float) net.minecraft.util.Mth.atan2(dist, y + 0.5);
         ccrs.baseColour = 0xFFFFFFFF;
 
-        switch (tier){
-            case 0:
-                DEShaders.basicEnergyCrystalShader.setMipmap((float) mm);
-                DEShaders.basicEnergyCrystalShader.setColour(COLOURS[tier]);
-                break;
-            case 1:
-                DEShaders.wyvernEnergyCrystalShader.setMipmap((float) mm);
-                DEShaders.wyvernEnergyCrystalShader.setColour(COLOURS[tier]);
-                break;
-            case 2:
-                DEShaders.draconicEnergyCrystalShader.setMipmap((float) mm);
-                DEShaders.draconicEnergyCrystalShader.setColour(COLOURS[tier]);
-                break;
-        }
+        EnergyCrystalShaderInstance shader = DEShaders.getEnergyCrystalShader(tier);
+        shader.setMipmap((float) mm);
+        shader.setColour(COLOURS[tier]);
 
 //        DEShaders.energyCrystalAngle.glUniform2f(xrot / -3.125F, yrot / 3.125F);
 

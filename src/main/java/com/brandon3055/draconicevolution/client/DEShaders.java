@@ -4,8 +4,8 @@ import codechicken.lib.render.shader.CCShaderInstance;
 import codechicken.lib.render.shader.CCUniform;
 import codechicken.lib.util.ClientUtils;
 import com.brandon3055.brandonscore.api.TimeKeeper;
-import com.brandon3055.draconicevolution.client.shader.EnergyCoreShader;
-import com.brandon3055.draconicevolution.client.shader.EnergyCrystalShader;
+import com.brandon3055.draconicevolution.client.shader.EnergyCoreShaderInstance;
+import com.brandon3055.draconicevolution.client.shader.EnergyCrystalShaderInstance;
 import com.brandon3055.draconicevolution.client.shader.ShieldShader;
 import com.brandon3055.draconicevolution.client.shader.ToolShader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -16,7 +16,6 @@ import net.minecraftforge.client.event.RegisterShadersEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,11 +68,9 @@ public class DEShaders {
     public static CCUniform energyCrystalMipmap;
     public static CCUniform energyCrystalAngle;*/
 
-    public static EnergyCrystalShader basicEnergyCrystalShader;
-    public static EnergyCrystalShader wyvernEnergyCrystalShader;
-    public static EnergyCrystalShader draconicEnergyCrystalShader;
-
-    public static List<EnergyCrystalShader> energyCrystalShaders = new ArrayList<>();
+    public static EnergyCrystalShaderInstance basicEnergyCrystalShader;
+    public static EnergyCrystalShaderInstance wyvernEnergyCrystalShader;
+    public static EnergyCrystalShaderInstance draconicEnergyCrystalShader;
 
 //    public static CCShaderInstance testShader;
 //    public static CCUniform testTime;
@@ -82,7 +79,7 @@ public class DEShaders {
 //    public static CCUniform testInC;
 //    public static CCUniform testInD;
 
-    public static EnergyCoreShader energyCoreShader;
+    public static EnergyCoreShaderInstance energyCoreShader;
 
     public static CCShaderInstance reactorBeamShader;
     public static CCUniform reactorBeamTime;
@@ -155,26 +152,23 @@ public class DEShaders {
             energyCrystalShader.onApply(() -> energyCrystalTime.glUniform1f((TimeKeeper.getClientTick() + Minecraft.getInstance().getFrameTime()) / 50F));
         });*/
 
-        event.registerShader(EnergyCrystalShader.create(event.getResourceProvider()), e -> {
-            basicEnergyCrystalShader = (EnergyCrystalShader) e;
+        event.registerShader(EnergyCrystalShaderInstance.create(event.getResourceProvider()), e -> {
+            basicEnergyCrystalShader = (EnergyCrystalShaderInstance) e;
             basicEnergyCrystalShader.init();
-            energyCrystalShaders.add(basicEnergyCrystalShader);
         });
 
-        event.registerShader(EnergyCrystalShader.create(event.getResourceProvider()), e -> {
-            wyvernEnergyCrystalShader = (EnergyCrystalShader) e;
+        event.registerShader(EnergyCrystalShaderInstance.create(event.getResourceProvider()), e -> {
+            wyvernEnergyCrystalShader = (EnergyCrystalShaderInstance) e;
             wyvernEnergyCrystalShader.init();
-            energyCrystalShaders.add(wyvernEnergyCrystalShader);
         });
 
-        event.registerShader(EnergyCrystalShader.create(event.getResourceProvider()), e -> {
-            draconicEnergyCrystalShader = (EnergyCrystalShader) e;
+        event.registerShader(EnergyCrystalShaderInstance.create(event.getResourceProvider()), e -> {
+            draconicEnergyCrystalShader = (EnergyCrystalShaderInstance) e;
             draconicEnergyCrystalShader.init();
-            energyCrystalShaders.add(draconicEnergyCrystalShader);
         });
 
-        event.registerShader(EnergyCoreShader.create(event.getResourceProvider()), e -> {
-            energyCoreShader = (EnergyCoreShader) e;
+        event.registerShader(EnergyCoreShaderInstance.create(event.getResourceProvider()), e -> {
+            energyCoreShader = (EnergyCoreShaderInstance) e;
             energyCoreShader.init();
         });
 
@@ -223,6 +217,15 @@ public class DEShaders {
             explosionAlpha = explosionShader.getUniform("Alpha");
             explosionType = explosionShader.getUniform("Type");
         });
+    }
+
+    public static EnergyCrystalShaderInstance getEnergyCrystalShader(int tier){
+        return switch (tier){
+            case 0 -> basicEnergyCrystalShader;
+            case 1 -> wyvernEnergyCrystalShader;
+            case 2 -> draconicEnergyCrystalShader;
+            default -> throw new IllegalStateException("Unexpected value: " + tier);
+        };
     }
 
 }

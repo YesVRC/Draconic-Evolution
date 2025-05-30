@@ -20,6 +20,7 @@ import com.brandon3055.draconicevolution.blocks.energynet.EnergyCrystal.CrystalT
 import com.brandon3055.draconicevolution.client.DEShaders;
 import com.brandon3055.draconicevolution.client.handler.ClientEventHandler;
 import com.brandon3055.draconicevolution.client.render.tile.RenderTileEnergyCrystal;
+import com.brandon3055.draconicevolution.client.shader.EnergyCrystalShaderInstance;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -84,20 +85,10 @@ public class RenderItemEnergyCrystal implements IItemRenderer {
         ccrs.brightness = packedLight;
         ccrs.overlay = packedOverlay;
         mat.translate(0.5, type == CrystalType.CRYSTAL_IO ? 0 : 0.5, 0.5);
-        switch (tier){
-            case 0:
-                DEShaders.basicEnergyCrystalShader.setMipmap(0F);
-                DEShaders.basicEnergyCrystalShader.setColour(COLOURS[tier]);
-                break;
-            case 1:
-                DEShaders.wyvernEnergyCrystalShader.setMipmap(0F);
-                DEShaders.wyvernEnergyCrystalShader.setColour(COLOURS[tier]);
-                break;
-            case 2:
-                DEShaders.draconicEnergyCrystalShader.setMipmap(0F);
-                DEShaders.draconicEnergyCrystalShader.setColour(COLOURS[tier]);
-                break;
-        }
+
+        EnergyCrystalShaderInstance shader = DEShaders.getEnergyCrystalShader(tier);
+        shader.setMipmap(0F);
+        shader.setColour(COLOURS[tier]);
 
         if (type == CrystalType.CRYSTAL_IO) {
             ccrs.bind(crystalBaseType, getter);
