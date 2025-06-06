@@ -4,10 +4,7 @@ import codechicken.lib.render.shader.CCShaderInstance;
 import codechicken.lib.render.shader.CCUniform;
 import codechicken.lib.util.ClientUtils;
 import com.brandon3055.brandonscore.api.TimeKeeper;
-import com.brandon3055.draconicevolution.client.shader.EnergyCoreShaderInstance;
-import com.brandon3055.draconicevolution.client.shader.EnergyCrystalShaderInstance;
-import com.brandon3055.draconicevolution.client.shader.ShieldShader;
-import com.brandon3055.draconicevolution.client.shader.ToolShader;
+import com.brandon3055.draconicevolution.client.shader.*;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.covers1624.quack.util.CrashLock;
 import net.minecraft.client.Minecraft;
@@ -15,9 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.event.RegisterShadersEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.brandon3055.draconicevolution.DraconicEvolution.MODID;
 
@@ -28,9 +22,7 @@ public class DEShaders {
 
     private static final CrashLock LOCK = new CrashLock("Already Initialized");
 
-    public static CCShaderInstance reactorShader;
-    public static CCUniform reactorTime;
-    public static CCUniform reactorIntensity;
+    public static ReactorCoreShaderInstance reactorCoreShader;
 
     public static CCShaderInstance reactorShieldShader;
     public static CCUniform reactorShieldTime;
@@ -114,10 +106,8 @@ public class DEShaders {
     }
 
     private static void onRegisterShaders(RegisterShadersEvent event) {
-        event.registerShader(CCShaderInstance.create(event.getResourceProvider(), new ResourceLocation(MODID, "reactor"), DefaultVertexFormat.POSITION_TEX), e -> {
-            reactorShader = (CCShaderInstance) e;
-            reactorTime = reactorShader.getUniform("time");
-            reactorIntensity = reactorShader.getUniform("intensity");
+        event.registerShader(ReactorCoreShaderInstance.create(event.getResourceProvider()), e -> {
+            reactorCoreShader = (ReactorCoreShaderInstance) e;
         });
 
         event.registerShader(CCShaderInstance.create(event.getResourceProvider(), new ResourceLocation(MODID, "reactor_shield"), DefaultVertexFormat.POSITION_TEX), e -> {
@@ -154,22 +144,18 @@ public class DEShaders {
 
         event.registerShader(EnergyCrystalShaderInstance.create(event.getResourceProvider()), e -> {
             basicEnergyCrystalShader = (EnergyCrystalShaderInstance) e;
-            basicEnergyCrystalShader.init();
         });
 
         event.registerShader(EnergyCrystalShaderInstance.create(event.getResourceProvider()), e -> {
             wyvernEnergyCrystalShader = (EnergyCrystalShaderInstance) e;
-            wyvernEnergyCrystalShader.init();
         });
 
         event.registerShader(EnergyCrystalShaderInstance.create(event.getResourceProvider()), e -> {
             draconicEnergyCrystalShader = (EnergyCrystalShaderInstance) e;
-            draconicEnergyCrystalShader.init();
         });
 
         event.registerShader(EnergyCoreShaderInstance.create(event.getResourceProvider()), e -> {
             energyCoreShader = (EnergyCoreShaderInstance) e;
-            energyCoreShader.init();
         });
 
 //        try {

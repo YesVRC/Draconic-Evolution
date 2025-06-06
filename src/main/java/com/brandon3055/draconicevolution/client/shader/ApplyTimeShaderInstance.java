@@ -17,7 +17,7 @@ public class ApplyTimeShaderInstance extends CCShaderInstance {
         super(resourceProvider, loc, format);
     }
 
-    public void init(){
+    void init(){
         this.onApply(this::applyTime);
         this.Time = this.getUniform("Time");
     }

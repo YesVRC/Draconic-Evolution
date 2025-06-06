@@ -22,7 +22,9 @@ public class EnergyCrystalShaderInstance extends ApplyTimeShaderInstance {
 
     public static EnergyCrystalShaderInstance create(ResourceProvider provider) {
         try {
-            return new EnergyCrystalShaderInstance(provider);
+            EnergyCrystalShaderInstance instance = new EnergyCrystalShaderInstance(provider);
+            instance.init();
+            return instance;
         } catch (IOException ex) {
             throw new RuntimeException("Failed to initialize shader.", ex);
         }

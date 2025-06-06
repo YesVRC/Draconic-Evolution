@@ -25,18 +25,16 @@ public class EnergyCoreShaderInstance extends ApplyTimeShaderInstance {
 
     public static EnergyCoreShaderInstance create(ResourceProvider provider) {
         try {
-            return new EnergyCoreShaderInstance(provider);
+            EnergyCoreShaderInstance instance = new EnergyCoreShaderInstance(provider);
+            instance.init();
+            return instance;
         } catch (IOException ex) {
             throw new RuntimeException("Failed to initialize shader.", ex);
         }
     }
 
     public static EnergyCoreShaderInstance create() {
-        try {
-            return new EnergyCoreShaderInstance(provider);
-        } catch (IOException ex) {
-            throw new RuntimeException("(copy) Failed to initialize shader.", ex);
-        }
+        return create(provider);
     }
     
     public void init(){

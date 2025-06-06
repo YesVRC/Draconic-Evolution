@@ -41,7 +41,7 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
     private static CCModel model = null;
 
     public static RenderType REACTOR_CORE_TYPE = RenderType.create("reactor_type", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, RenderType.CompositeState.builder()
-            .setShaderState(new RenderStateShard.ShaderStateShard(() -> DEShaders.reactorShader))
+            .setShaderState(new RenderStateShard.ShaderStateShard(() -> DEShaders.reactorCoreShader))
             .createCompositeState(false)
     );
 
@@ -123,8 +123,8 @@ public class RenderTileReactorCore implements BlockEntityRendererTransparent<Til
             Map<String, CCModel> map = new OBJParser(new ResourceLocation(DraconicEvolution.MODID, "models/block/reactor/reactor_core.obj")).quads().ignoreMtl().parse();
             model = CCModel.combine(map.values());
         }
-        DEShaders.reactorTime.glUniform1f(animation);
-        DEShaders.reactorIntensity.glUniform1f(intensity);
+        DEShaders.reactorCoreShader.setTime(animation);
+        DEShaders.reactorCoreShader.setIntensity(intensity);
         ccrs.bind(REACTOR_CORE_TYPE, getter);
         model.render(ccrs, mat);
         RenderUtils.endBatch(getter);
